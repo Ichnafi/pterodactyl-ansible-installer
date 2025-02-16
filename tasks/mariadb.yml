@@ -1,0 +1,69 @@
+---
+# code: language=ansible
+
+- name: Installiere MariaDB Requirements
+  ansible.builtin.apt:
+    name: '{{ mariadb_packages }}'
+    state: present
+
+- name: Prüfe of ein MariaDB Root Passwort gesetzt ist
+  ansible.builtin.shell: >
+    mysql -u root
+    -p"{{ mariadb_root_password }}"
+    -h localhost
+    -S "/run/mysqld/mysqld.sock"
+    -e "quit"
+  changed_when: false
+  ignore_errors: true
+  register: root_pwd_check
+
+- name: MariaDB
+  community.mysql.mysql_user:
+    name: root
+    password: '{{ mariadb_root_password }}'
+    host: localhost
+    login_unix_socket: /run/mysqld/mysqld.sock
+    state: present
+  when: root_pwd_check.rc != 0
+
+- name: Setze MariaDB root Passwort für 127.0.0.1, ::1
+  community.mysql.mysql_user:
+    name: root
+    password: '{{ mariadb_root_password }}'
+    host: '{{ item }}'
+    login_user: root
+    login_password: '{{ mariadb_root_password }}'
+    login_unix_socket: '/run/mysqld/mysqld.sock'
+    state: present
+  loop:
+    - ::1
+    - 127.0.0.1
+    - localhost
+  when: root_pwd_check.rc == 0
+
+- name: Erstelle zufälliges Passwort für Datenbankuser Pterodactyl
+  ansible.builtin.set_fact:
+    dbuser_password: "{{ lookup('ansible.builtin.password', '/dev/null', chars=['ascii_letters', 'digits'], length=14) }}"
+
+- name: Create Panel Datenbank
+  community.mysql.mysql_db:
+    name: panel
+    login_user: root
+    login_password: '{{ mariadb_root_password }}'
+    login_unix_socket: /run/mysqld/mysqld.sock
+    state: present
+
+- name: Datenbankuser Passwort ausgeben
+  ansible.builtin.debug:
+    msg: 'BITTE NOTIEREN: DAS DATENBANKUSER Passwort für User Pterodacty lautet: {{ dbuser_password }}'
+
+- name: Anlegen Datenbankuser für Pterodactyl
+  community.mysql.mysql_user:
+    name: pterodactyl
+    password: '{{ dbuser_password }}'
+    host: localhost
+    priv: 'panel.*:ALL,GRANT'
+    login_user: root
+    login_password: '{{ mariadb_root_password }}'
+    login_unix_socket: /run/mysqld/mysqld.sock
+    state: present

@@ -1,0 +1,28 @@
+---
+# code: language=ansible
+
+- name: Entferne Default NGINX-Config
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: Erzeuge Pterodactyl NGINX-Config
+  ansible.builtin.template:
+    src: templates/pterodactyl.conf.j2
+    dest: /etc/nginx/sites-available/pterodactyl.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Aktiviere NGINX-Config
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/pterodactyl.conf
+    dest: /etc/nginx/sites-enabled/pterodactyl.conf
+    state: link
+    owner: root
+    group: root
+
+- name: Restart NGINX-Config
+  ansible.builtin.systemd_service:
+    name: nginx.service
+    state: restarted

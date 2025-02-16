@@ -1,0 +1,33 @@
+---
+# code: language=ansible
+
+# Print alle abgefragten oder während des runs erstellen
+# Namen, Passwörter, etc.
+
+- name: Zusammenfassung
+  ansible.builtin.debug:
+    msg:
+      - Panel URL:.............http://{{ ansible_default_ipv4.address }}
+      - Panel URL FQDN:........http://{{ ptero_fqdn }} (falls Du wirklich einen DNS Eintrag dafür hast)
+      - Login:.................{{ ptero_admin_username }}
+      - Passwort:..............{{ ptero_admin_password }}
+      - Email:.................{{ ptero_admin_user_email }}
+      - MariaDB Root Pass:.....{{ mariadb_root_password }}
+      - MariaDB Panel User:....pterodactyl
+      - MariaDB Panel Pass:....{{ dbuser_password }}
+      - Game Node Name.........{{ ptero_node_name }}
+      - Game Node RAM..........{{ ptero_node_maxmem }} Mib
+      - Game Node Festplatte...{{ ptero_node_disk }} MiB
+      - ----------------------------------------------------
+      - Nächste Schritte
+      - 1. Melde dich im Panel an
+      - 2. Navigiere nach Admin -> Node -> wähle Node {{ ptero_node_name }}
+      - ...a. Settings -> Total Memory auf etwas sinnvolles ändern (ARK braucht mind. 11GiB)
+      - ...b. Settings -> Disk Space auf etwas sinnvolles ändern
+      - 3. Node Allocations setzen
+      - ...a. Assign New Allocations -> IP Adress -> {{ ansible_default_ipv4.address }} eintragen
+      - ...b. Assign New Allocations -> IP Alias -> (optional), einfach leer lassen
+      - ...c. Assign New Allocations -> Ports -> 27050 - 27099 eintragen (sollte reichen)
+      - ...d. Submit klicken
+      - 4. Import Eggs wenn notwendig (z.B. ASA -> https://tinyurl.com/5n8535mw)
+      - 5. Erzeuge einen Server (=Spiel)

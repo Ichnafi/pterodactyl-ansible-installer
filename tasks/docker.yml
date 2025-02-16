@@ -1,0 +1,34 @@
+---
+# code: language=ansible
+
+- name: Docker GPG-Key hinzufügen
+  ansible.builtin.apt_key:
+    url: '{{ docker_apt_gpg_key }}'
+    state: present
+
+- name: Docker Repo hinzufügen
+  ansible.builtin.apt_repository:
+    repo: '{{ docker_apt_repository }} {{ ansible_distribution_release }} stable'
+    state: present
+    update_cache: true
+
+- name: Docker installieren
+  ansible.builtin.apt:
+    name: '{{ docker_packages }}'
+    state: present
+
+- name: Enable und starte Docker Service
+  ansible.builtin.service:
+    name: '{{ item }}'
+    state: started
+    enabled: true
+  loop:
+    - docker.service
+    - containerd.service
+
+- name: Test Docker Installation
+  community.docker.docker_container:
+    name: hello-world
+    image: hello-world
+    timeout: 30
+  changed_when: false

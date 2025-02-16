@@ -1,0 +1,45 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/ubuntu
+{
+  "name": "Ubuntu",
+  // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+  "image": "mcr.microsoft.com/devcontainers/base:noble",
+
+  // Features to add to the dev container. More info: https://containers.dev/features.
+  "features": {
+    // Wir brauchen Ansible
+    "ghcr.io/devcontainers-extra/features/ansible:2": {
+      "version": "latest"
+    },
+    // Wir brauchen Ansible-Lint
+    "ghcr.io/hspaans/devcontainer-features/ansible-lint:1": {
+      "version": "latest"
+    }
+  },
+  "mounts": [
+    // Um aus dem Devcontainer heraus die eigenen SSH-Keys für GIT benutzen zu können,
+    // wird das eigene .ssh Verzeichnis in den Container gemounted
+    "type=bind,source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,readonly"
+  ],
+
+  // Use 'forwardPorts' to make a list of ports inside the container available locally.
+  // "forwardPorts": [],
+
+  // Use 'postCreateCommand' to run commands after the container is created.
+  // "postCreateCommand": "uname -a",
+
+  // Configure tool-specific properties.
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "redhat.ansible",
+        "redhat.vscode-yaml",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "esbenp.prettier-vscode"
+      ]
+    }
+  }
+  // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+  // "remoteUser": "root"
+}

@@ -1,0 +1,112 @@
+---
+# code: language=ansible
+
+- name: Install Pterodactyl und Wings auf Ubuntu Sercer
+  hosts: all
+  gather_facts: true
+  become: true
+  connection: local
+
+  vars:
+    current_user: "{{ lookup('env', 'USER') }}"
+
+  vars_prompt:
+    - name: risk_aware
+      prompt: |
+        -------
+        WARNUNG
+        -------
+        1. Ich bin mir bewusst, dass ich vielleicht mein System schrotte.
+        2. Dieses Playbook ist für ein frisches Ubuntu Server 24.02 oder höher gedacht
+        3. Vorhandene Apache, Docker MariaDB Installationen werden entfernt/zerstört
+        4. Vorhandene Pterodactyl Installationen werden zerstört
+        5. Alles was Kaputt geht, ist DEINE EIGENE SCHULD!
+        -------
+        Wenn Du also wirklich fortfahren möchtest dann schreibe "ja-ich-will"!
+      default: 'WEITER?'
+      private: false
+
+    - name: ansible_become_password
+      prompt: Bitte gib Dein Linux-Userpasswort ein (für sudo Nutzung)
+      private: true
+
+    - name: ptero_admin_username
+      prompt: Wie soll der Pterodactyl GUI Admin Username lauten?
+      private: false
+
+    - name: ptero_admin_password
+      prompt: Wie soll das Pterodactyl GUI Admin Passwort lauten [min. 8 Zeichen, Groß/Klein, min. 1 Zahl]?
+      private: true
+
+    - name: ptero_admin_user_firstname
+      prompt: Wie lautet dein Vorname (für den GUI Admin User)?
+      default: Gehtdich
+      private: false
+
+    - name: ptero_admin_user_lastname
+      prompt: Wie lautet dein Nachname (für den GUI Admin User)?
+      default: Nixan
+      private: false
+
+    - name: ptero_admin_user_email
+      prompt: Wie lautet deine Email Adresse (für den GUI Admin User)?
+      default: unknown@unkknown.com
+      private: false
+
+    - name: mariadb_root_password
+      prompt: Wie soll das MariaDB Root Passwort lauten?
+      private: true
+
+    - name: ptero_fqdn
+      prompt: Wie ist der FQDN, unter dem Pterodactyl aufgerufen werden kann?
+      private: false
+
+  pre_tasks:
+    - name: Risiko Warnung wurde akzeptiert
+      ansible.builtin.fail:
+        msg: 'Das Playbook wird abgebrochen! Es wurden keine Änderungen an dem System vorgenommen!'
+      when: not risk_aware | lower == 'ja-ich-will'
+
+    - name: Prüfe Password auf ausreichende Komplexität
+      ansible.builtin.assert:
+        that:
+          - ptero_admin_password | regex_search(password_complexity)
+        fail_msg: 'Das Passwort entspricht nicht der notwendigen Komplexität'
+        success_msg: 'Das Passwort entspricht der notwendigen Komplexität'
+
+  tasks:
+    - name: Prüfen das wir auf Ubuntu >=24 laufen
+      ansible.builtin.assert:
+        that:
+          - ansible_distribution == "Ubuntu"
+          - ansible_distribution_major_version is ansible.builtin.version("24", '>=')
+        fail_msg: 'Die Distribution und/oder Major Version wird von diesem Playbook nicht supportet. Es muss Ubuntu >= 24 sein!'
+        success_msg: 'Distribution und Major-Version sind kompatibel (Ubuntu >= 24)'
+
+    - name: Essentials tasks
+      ansible.builtin.include_tasks:
+        file: tasks/essentials.yml
+
+    - name: Docker tasks
+      ansible.builtin.include_tasks:
+        file: tasks/docker.yml
+
+    - name: MariaDB tasks
+      ansible.builtin.include_tasks:
+        file: tasks/mariadb.yml
+
+    - name: Pterodactyl tasks
+      ansible.builtin.include_tasks:
+        file: tasks/pterodactyl-install.yml
+
+    - name: Pterodactyl Setup Tasks
+      ansible.builtin.include_tasks:
+        file: tasks/pterodactyl-setup.yml
+
+    - name: NGINX Konfiguration
+      ansible.builtin.include_tasks:
+        file: tasks/nginx.yml
+
+    - name: Zusammenfassung
+      ansible.builtin.include_tasks:
+        file: tasks/complete-message.yml

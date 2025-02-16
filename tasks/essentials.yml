@@ -1,0 +1,29 @@
+---
+# code: language=ansible
+
+- name: Update packges
+  ansible.builtin.apt:
+    update_cache: true
+    upgrade: true
+
+- name: Install Essential-Pakete
+  ansible.builtin.apt:
+    name: "{{ essential_packages }}"
+    state: present
+
+- name: Docker-Gruppe anlegen
+  ansible.builtin.group:
+    name: docker
+    state: present
+
+- name: User in Docker-Gruppe aufnehmen
+  ansible.builtin.user:
+    name: "{{ current_user }}"
+    groups:
+      - docker
+    append: true
+
+- name: Entferne alte Docker und Apache2 Installationen
+  ansible.builtin.apt:
+    name: "{{ remove_packages }}"
+    state: absent

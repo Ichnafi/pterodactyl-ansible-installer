@@ -1,0 +1,111 @@
+---
+# code: language=ansible
+
+- name: Erstelle .env Datei
+  ansible.builtin.copy:
+    src: '{{ ptero_install_dir }}/.env.example'
+    dest: '{{ ptero_install_dir }}/.env'
+    mode: '0644'
+
+- name: Enable und starte MariaDB und Redis-Server
+  ansible.builtin.service:
+    name: '{{ item }}'
+    state: started
+    enabled: true
+  loop:
+    - mariadb.service
+    - redis-server
+
+- name: Run PHP Composer
+  community.general.composer:
+    working_dir: '{{ ptero_install_dir }}'
+    command: install
+    no_dev: true
+    optimize_autoloader: true
+  environment:
+    COMPOSER_ALLOW_SUPERUSER: '1'
+
+- name: Erzeuge Artisan Key
+  ansible.builtin.command:
+    chdir: '{{ ptero_install_dir }}'
+    cmd: php artisan key:generate --force
+  changed_when: true
+
+- name: Konfiguriere Environment (.env)
+  ansible.builtin.lineinfile:
+    path: '{{ ptero_install_dir }}/.env'
+    search_string: '{{ item.search }}'
+    line: '{{ item.line }}'
+    insertafter: EOF
+    state: present
+    backup: true
+    mode: '0644'
+  loop:
+    - search: 'APP_TIMEZONE'
+      line: 'APP_TIMEZONE=Europe/Berlin'
+    - search: 'APP_URL'
+      line: 'APP_URL={{ ptero_fqdn }}'
+    - search: 'APP_LOCALE'
+      line: 'APP_LOCALE=de'
+    - search: 'APP_ENVIRONMENT_ONLY'
+      line: 'APP_ENVIRONMENT_ONLY=false'
+    - search: 'DB_PASSWORD'
+      line: 'DB_PASSWORD={{ dbuser_password }}'
+    - search: 'CACHE_DRIVER'
+      line: 'CACHE_DRIVER=redis'
+    - search: 'SESSION_DRIVER'
+      line: 'SESSION_DRIVER=redis'
+    - search: 'HASHIDS_SALT'
+      line: "HASHIDS_SALT={{ lookup('ansible.builtin.password', '/dev/null', chars=['ascii_letters', 'digits'], length=12) }}"
+    - search: 'APP_SERVICE_AUTHOR'
+      line: 'APP_SERVICE_AUTHOR="{{ ptero_admin_user_email }}"'
+    - search: 'PTERODACTYL_TELEMETRY_ENABLED'
+      line: 'PTERODACTYL_TELEMETRY_ENABLED=false'
+
+- name: Datenbank Migration ausführen
+  ansible.builtin.command:
+    chdir: '{{ ptero_install_dir }}'
+    cmd: php artisan migrate --seed --force
+  changed_when: true
+
+- name: Erzeuge GUI Admin User
+  ansible.builtin.command:
+    chdir: '{{ ptero_install_dir }}'
+    argv:
+      - php
+      - artisan
+      - p:user:make
+      - --email={{ ptero_admin_user_email }}
+      - --username={{ ptero_admin_username }}
+      - --name-first={{ ptero_admin_user_firstname }}
+      - --name-last={{ ptero_admin_user_lastname }}
+      - --password={{ ptero_admin_password }}
+      - --admin=1
+  changed_when: true
+
+- name: Ändere Bseitzer auf www-data von Verzeichnis "{{ ptero_install_dir }}"
+  ansible.builtin.file:
+    path: '{{ ptero_install_dir }}'
+    owner: www-data
+    group: www-data
+    recurse: true
+
+- name: Crontab Eintrag erstellen
+  ansible.builtin.cron:
+    name: 'Artisan Schedule'
+    job: php /var/www/pterodactyl/artisan schedule:run >> /dev/null 2>&1
+    state: present
+
+- name: Erzeuge Queue Worker Service
+  ansible.builtin.template:
+    src: templates/pteroq.service.j2
+    dest: /etc/systemd/system/pteroq.service
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Enable Ptero-Service
+  ansible.builtin.service:
+    name: pteroq.service
+    state: started
+    enabled: true

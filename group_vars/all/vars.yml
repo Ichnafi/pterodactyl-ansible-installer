@@ -1,0 +1,92 @@
+---
+# Benötigte Passwort-Komplexität
+# .{8,}         Mindestens 8 Zeichen
+# (?=.*[A-Z])   1 Großbuchstabe
+# (?=.*[a-z])   1 Kleinbuchstabe
+# (?=.*[0-9])   1 Ziffer
+password_complexity: ^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).{8,}$
+
+# Pakete die wir immer brauchen
+essential_packages:
+  - ansible
+  - ca-certificates
+  - cron
+  - curl
+  - git
+  - htop
+  - python3
+  - vim
+
+# Das hier zur Sicherheit deinstallieren
+remove_packages:
+  - apache2
+  - docker.io
+  - docker-doc
+  - docker-compose
+  - docker-compose-v2
+  - podman-docker
+  - containerd
+  - runc
+
+# Pakete für Docker
+docker_packages:
+  - containerd.io
+  - docker-ce
+  - docker-ce-cli
+  - docker-buildx-plugin
+  - docker-compose-plugin
+
+# Docker Repo GPG-Key
+docker_apt_gpg_key: "https://download.docker.com/linux/ubuntu/gpg"
+
+# Docker Repository
+docker_apt_repository: "deb https://download.docker.com/linux/ubuntu"
+
+# Pakete für MariaDB
+mariadb_packages:
+  - mariadb-server
+  - python3-pymysql
+
+# Pakete für Pterodactyl
+ptero_packages:
+  - apt-transport-https
+  - ca-certificates
+  - composer
+  - curl
+  - git
+  - gnupg
+  - nginx
+  - php8.3
+  - php8.3-bcmath
+  - php8.3-cli
+  - php8.3-common
+  - php8.3-fpm
+  - php8.3-gd
+  - php8.3-mbstring
+  - php8.3-mysql
+  - php8.3-xml
+  - redis-server
+  - software-properties-common
+  - tar
+  - unzip
+  - zip
+
+# Latest Pterodactyl Download Link
+ptero_panel_url: "https://github.com/pterodactyl/panel/releases/latest/download/panel.tar.gz"
+
+# Petrodactyl Installationsverzeichnis
+ptero_install_dir: "/var/www/pterodactyl"
+
+# Wings Download URL
+wings_file_url: https://github.com/pterodactyl/wings/releases/latest/download/wings_linux_arm64
+wings_checksum_url: https://github.com/pterodactyl/wings/releases/latest/download/checksums.txt
+wings_checksum_mode: sha256
+wings_install_dir: /usr/local/bin
+wings_config_dir: /etc/pterodactyl
+
+# Node
+ptero_node_location: lokal
+ptero_node_name: Lokal-Node
+ptero_node_description: "Lokaler Server"
+ptero_node_maxmem: 512
+ptero_node_disk: 10000

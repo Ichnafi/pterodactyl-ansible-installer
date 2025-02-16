@@ -1,0 +1,36 @@
+---
+# code: language=ansible
+
+- name: Installiere Pterodactyl Requirements
+  ansible.builtin.apt:
+    name: '{{ ptero_packages }}'
+    state: present
+
+- name: Erstelle Verzeichnis "{{ ptero_install_dir }}"
+  ansible.builtin.file:
+    path: '{{ ptero_install_dir }}'
+    state: directory
+    owner: root
+    group: root
+    mode: '755'
+
+- name: Download
+  ansible.builtin.get_url:
+    url: '{{ ptero_panel_url }}'
+    dest: '{{ ptero_install_dir }}'
+    mode: '0644'
+  register: panel_file # panel_file.dest -> /var/www/pterodactyl/panel.tar.gz
+
+- name: Panel entpacken
+  ansible.builtin.unarchive:
+    src: '{{ panel_file.dest }}'
+    dest: '{{ ptero_install_dir }}'
+
+- name: Setze Permissions
+  ansible.builtin.file:
+    path: '{{ item }}'
+    recurse: true
+    mode: '0755'
+  loop:
+    - '{{ ptero_install_dir }}/storage'
+    - '{{ ptero_install_dir }}/bootstrap/cache/'

@@ -1,0 +1,96 @@
+---
+# code: language=ansible
+
+# wings_file_url: https://github.com/pterodactyl/wings/releases/latest/download/wings_linux_arm64
+# wings_checksum_url: https://github.com/pterodactyl/wings/releases/latest/download/checksums.txt
+# wings_checksum_mode: sha256
+# wings_install_dir: /usr/local/bin
+
+- name: Lade Wings herunter
+  ansible.builtin.get_url:
+    url: '{{ wings_file_url }}'
+    dest: '{{ wings_install_dir }}'
+    checksum: '{{ wings_checksum_mode }}:{{ wings_checksum_url }}'
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Erzeuge Wings Config-Dir unter "{{ wings_config_dir }}"
+  ansible.builtin.file:
+    path: '{{ wings_config_dir }}'
+    owner: root
+    group: root
+    state: directory
+    mode: '0755'
+
+- name: Erzeuge Wings Service
+  ansible.builtin.template:
+    src: templates/wings.service.j2
+    dest: /etc/systemd/system/wings.service
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Erzeuge Pterodactyl Location "{{ wings_server_location }}"
+  ansible.builtin.command:
+    chdir: '{{ ptero_install_dir }}'
+    argv:
+      - php
+      - artisan
+      - p:location:make
+      - --short={{ ptero_node_location }}
+      - --no-interaction
+  register: ptero_nodeman_location_result
+  changed_when: false
+
+- name: Erzeuge Pterodactyl Node
+  ansible.builtin.command:
+    chdir: '{{ ptero_install_dir }}'
+    argv:
+      - php
+      - artisan
+      - p:node:make
+      - --name=server2
+      - --locationId={{ ptero_node_location_result.stdout | split | last | split('.') | first }}
+      - --fqdn=172.0.0.1
+      - --public=1
+      - --scheme=http
+      - --proxy=0
+      - --maxMemory={{ ptero_node_maxmem }}
+      - --overallocateMemory=0
+      - --maxDisk={{ ptero_node_disk }}
+      - --overallocateDisk=0
+      - --description={{ ptero_node_description }}
+      - --maintenance=0
+      - --uploadSize=100
+      - --daemonListeningPort=8080
+      - --daemonSFTPPort=2022
+      - --daemonBase=/var/lib/pterodactyl/volumes
+  register: ptero_node_id
+  changed_when: false
+
+- name: Lese Node Config von Pterodactyl um Node Config zu schreiben
+  ansible.builtin.command:
+    chdir: '{{ ptero_install_dir }}'
+    argv:
+      - php
+      - artisan
+      - p:node:configuration
+      - "{{ ptero_node_id.stdout | split | last | split('.') | first }}"
+  register: ptero_node_configuration
+  changed_when: false
+
+- name: Schreibe Node Config nach config.yml in "{{ wings_config_dir }}"
+  ansible.builtin.copy:
+    content: '{{ ptero_node_configuration.stdout }}'
+    dest: '{{ wings_config_dir }}/config.yml'
+    follow: true
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Fix Remote-URL
+  ansible.builtin.lineinfile:
+    path: '{{ wings_config_dir }}/config.yml'
+    search_string: remote
+    line: 'remote: http://{{ ansible_default_ipv4.address }}'
