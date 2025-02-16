@@ -12,7 +12,6 @@ essential_packages:
   - ca-certificates
   - cron
   - curl
-  - git
   - htop
   - python3
   - vim
@@ -53,7 +52,6 @@ ptero_packages:
   - ca-certificates
   - composer
   - curl
-  - git
   - gnupg
   - nginx
   - php8.3
