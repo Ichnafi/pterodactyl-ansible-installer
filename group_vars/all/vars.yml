@@ -78,7 +78,7 @@ ptero_panel_url: "https://github.com/pterodactyl/panel/releases/latest/download/
 ptero_install_dir: "/var/www/pterodactyl"
 
 # Wings Download URL
-wings_file_url: https://github.com/pterodactyl/wings/releases/latest/download/wings_linux_arm64
+wings_file_url: https://github.com/pterodactyl/wings/releases/latest/download/wings_linux_amd64
 wings_checksum_url: https://github.com/pterodactyl/wings/releases/latest/download/checksums.txt
 wings_checksum_mode: sha256
 wings_install_dir: /usr/local/bin
