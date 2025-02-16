@@ -1,7 +1,7 @@
 ---
 # code: language=ansible
 
-- name: Install Pterodactyl und Wings auf Ubuntu Sercer
+- name: Install Pterodactyl und Wings auf Ubuntu Server
   hosts: all
   gather_facts: true
   become: true
@@ -106,6 +106,10 @@
     - name: NGINX Konfiguration
       ansible.builtin.include_tasks:
         file: tasks/nginx.yml
+
+    - name: Wings Tasks
+      ansible.builtin.include_tasks:
+        file: tasks/wings.yml
 
     - name: Zusammenfassung
       ansible.builtin.include_tasks:
