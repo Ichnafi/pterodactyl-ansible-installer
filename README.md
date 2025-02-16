@@ -11,7 +11,7 @@ Zum Starten des Playbooks werden nur ein paar Pakete nachinstalliert, alles weit
 ```bash
 apt update
 apt upgrade -y
-apt install -y python3 ansible git
+apt install -y python3 ansible
 ```
 
 ## Ausführen des Playbooks
@@ -22,9 +22,9 @@ Die Folgenden Punkte beschreiben die Ausführung des Playbook. Wir gehen davon a
 
 ### Starten des Playbooks
 
-1. Wechsle in das geclonte Verzeichnis
+1. Wechsle in das Verzeichnis
 ```bash
-cd ptero-install
+cd pterodactyl-ansible-installer
 ```
 
 2. Starte das Playbook und beantworte die Fragen
