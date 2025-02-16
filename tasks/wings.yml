@@ -1,11 +1,6 @@
 ---
 # code: language=ansible
 
-# wings_file_url: https://github.com/pterodactyl/wings/releases/latest/download/wings_linux_arm64
-# wings_checksum_url: https://github.com/pterodactyl/wings/releases/latest/download/checksums.txt
-# wings_checksum_mode: sha256
-# wings_install_dir: /usr/local/bin
-
 - name: Lade Wings herunter
   ansible.builtin.get_url:
     url: '{{ wings_file_url }}'
@@ -52,7 +47,7 @@
       - p:node:make
       - --name=server2
       - --locationId={{ ptero_node_location_result.stdout | split | last | split('.') | first }}
-      - --fqdn=172.0.0.1
+      - --fqdn={{ ansible_default_ipv4.address }}
       - --public=1
       - --scheme=http
       - --proxy=0
