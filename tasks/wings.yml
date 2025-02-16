@@ -9,7 +9,7 @@
 - name: Lade Wings herunter
   ansible.builtin.get_url:
     url: '{{ wings_file_url }}'
-    dest: '{{ wings_install_dir }}'
+    dest: '{{ wings_install_dir }}/wings'
     checksum: '{{ wings_checksum_mode }}:{{ wings_checksum_url }}'
     owner: root
     group: root
@@ -40,7 +40,7 @@
       - p:location:make
       - --short={{ ptero_node_location }}
       - --no-interaction
-  register: ptero_nodeman_location_result
+  register: ptero_node_location_result
   changed_when: false
 
 - name: Erzeuge Pterodactyl Node
@@ -94,3 +94,9 @@
     path: '{{ wings_config_dir }}/config.yml'
     search_string: remote
     line: 'remote: http://{{ ansible_default_ipv4.address }}'
+
+- name: Enable und starte Wings-Service
+  ansible.builtin.service:
+    name: wings.service
+    state: started
+    enabled: true
