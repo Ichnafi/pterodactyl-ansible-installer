@@ -18,7 +18,7 @@ apt install -y python3 ansible git
 Die Folgenden Punkte beschreiben die Ausführung des Playbook. Wir gehen davon aus, dass Dein User __sudo__ verwenden darf. Du wirst nach dem Start des Playbooks aufgefürdert, dein Passwort einzugeben.
 
 ### Clonen des Repositories
-    git clone _PLATZHALTER FÜR DEN GITHUB LINK_
+    wget -qO- https://github.com/Ichnafi/pterodactyl-ansible-installer/releases/latest/download/pterodactyl-ansible-installer.tar.gz | tar xzf -
 
 ### Starten des Playbooks
 
