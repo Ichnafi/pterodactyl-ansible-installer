@@ -15,7 +15,7 @@ apt install -y python3 ansible
 ```
 
 ## Ausführen des Playbooks
-Die Folgenden Punkte beschreiben die Ausführung des Playbook. Wir gehen davon aus, dass Dein User __sudo__ verwenden darf. Du wirst nach dem Start des Playbooks aufgefürdert, dein Passwort einzugeben.
+Die Folgenden Punkte beschreiben die Ausführung des Playbook. Wir gehen davon aus, dass Dein User __sudo__ verwenden darf. Du wirst nach dem Start des Playbooks aufgefordert, dein User-Passwort einzugeben damit Ansible Aktion mit höheren Berchtigungen durchführen kann.
 
 ### Clonen des Repositories
     wget -qO- https://github.com/Ichnafi/pterodactyl-ansible-installer/releases/latest/download/pterodactyl-ansible-installer.tar.gz | tar xzf -
